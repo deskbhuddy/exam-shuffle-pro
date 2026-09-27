@@ -14,102 +14,9 @@
     <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.min.js"></script>
     <!-- Inter Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    
-    <!-- Google AdSense Script Placeholder -->
-    <!-- REPLACE 'ca-pub-XXXXXXXXXXXXXXXX' WITH YOUR ACTUAL ADSENSE PUBLISHER ID -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-
-        /* Custom scrollbar for preview panes */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-
-        /* Prominent scrollbar for navigation tabs */
-        #mainTabs::-webkit-scrollbar {
-            height: 8px;
-        }
-        #mainTabs::-webkit-scrollbar-track {
-            background: #e2e8f0;
-            border-radius: 9999px;
-        }
-        #mainTabs::-webkit-scrollbar-thumb {
-            background: #6366f1;
-            border-radius: 9999px;
-            border: 2px solid #e2e8f0;
-        }
-        #mainTabs::-webkit-scrollbar-thumb:hover {
-            background: #4f46e5;
-        }
-
-        /* Pulsing active badge animation for navigation items */
-        @keyframes navPulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.85; }
-        }
-        .nav-active-glow {
-            box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.35);
-        }
-
-        /* CSS Print Stylesheet for clean exam outputs */
-        @media print {
-            body {
-                background: white !important;
-                color: black !important;
-                font-size: 12pt;
-            }
-            .no-print {
-                display: none !important;
-            }
-            .print-only {
-                display: block !important;
-            }
-            .page-break {
-                page-break-after: always;
-            }
-            .exam-paper {
-                box-shadow: none !important;
-                border: none !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                width: 100% !important;
-            }
-        }
-    </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
-
-    <!-- Top Banner Ad Unit (Responsive) -->
-    <div class="no-print w-full bg-slate-900 py-2 border-b border-slate-800 flex justify-center items-center overflow-hidden">
-        <div class="max-w-7xl w-full px-4 text-center">
-            <!-- Google AdSense Container: Replace data-ad-client and data-ad-slot with your AdSense details -->
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-                 data-ad-slot="1234567890"
-                 data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
-        </div>
-    </div>
 
     <!-- Navigation Header -->
     <header class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-lg sticky top-0 z-40 no-print border-b-2 border-indigo-500/40">
@@ -177,11 +84,8 @@
         </div>
     </div>
 
-    <!-- MAIN WRAPPER CONTAINER WITH RIGHT SIDEBAR FOR AD -->
-    <div class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6">
-
-        <!-- MAIN CONTENT CONTAINER -->
-        <main class="flex-1 w-full min-w-0">
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
 
         <!-- TAB 1: HEADER & INSTRUCTIONS -->
         <div id="tab-header" class="tab-content block space-y-6">
@@ -674,26 +578,7 @@ Answer: Carbon Dioxide"></textarea>
             </div>
         </div>
 
-        </main>
-
-        <!-- RIGHT SIDEBAR AD UNIT (RESPONSIVE) -->
-        <aside class="no-print w-full lg:w-80 shrink-0 flex flex-col items-center">
-            <div class="sticky top-32 w-full bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Advertisement</span>
-                <!-- Google AdSense Container: Replace data-ad-client and data-ad-slot with your AdSense details -->
-                <ins class="adsbygoogle"
-                     style="display:block"
-                     data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-                     data-ad-slot="0987654321"
-                     data-ad-format="auto"
-                     data-full-width-responsive="true"></ins>
-                <script>
-                     (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            </div>
-        </aside>
-
-    </div>
+    </main>
 
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 no-print"></div>
@@ -1560,7 +1445,7 @@ Answer: Carbon Dioxide"></textarea>
                 revealBox.classList.remove('hidden');
             } else {
                 hiddenBox.classList.remove('hidden');
-                revealBox.add('hidden');
+                revealBox.classList.add('hidden');
             }
 
             updatePeerFontSizeUI();
@@ -1684,9 +1569,5 @@ Answer: Carbon Dioxide"></textarea>
                 .replace(/'/g, "&#039;");
         }
     </script>
-<footer style="text-align: center;
-  padding: 3px;
-  background-color: DarkSalmon;
-  color: white;">Powered by: Desk Bhuddy | IT solutions made it for you | &copy; copyright 2026</footer>
 </body>
 </html>
