@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Questionnaire Randomizer & Exporter</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Mammoth.js for Word (.docx) Parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <!-- html-docx-js for DOCX Exporting -->
+    <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.min.js"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Google AdSense Script Placeholder -->
+    <!-- REPLACE 'ca-pub-XXXXXXXXXXXXXXXX' WITH YOUR ACTUAL ADSENSE PUBLISHER ID -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Custom scrollbar for preview panes */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Prominent scrollbar for navigation tabs */
+        #mainTabs::-webkit-scrollbar {
+            height: 8px;
+        }
+        #mainTabs::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 9999px;
+        }
+        #mainTabs::-webkit-scrollbar-thumb {
+            background: #6366f1;
+            border-radius: 9999px;
+            border: 2px solid #e2e8f0;
+        }
+        #mainTabs::-webkit-scrollbar-thumb:hover {
+            background: #4f46e5;
+        }
+
+        /* Pulsing active badge animation for navigation items */
+        @keyframes navPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.85; }
+        }
+        .nav-active-glow {
+            box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.35);
+        }
+
+        /* CSS Print Stylesheet for clean exam outputs */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                font-size: 12pt;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .page-break {
+                page-break-after: always;
+            }
+            .exam-paper {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Top Banner Ad Unit (Responsive) -->
+    <div class="no-print w-full bg-slate-900 py-2 border-b border-slate-800 flex justify-center items-center overflow-hidden">
+        <div class="max-w-7xl w-full px-4 text-center">
+            <!-- Google AdSense Container: Replace data-ad-client and data-ad-slot with your AdSense details -->
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                 data-ad-slot="1234567890"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+    </div>
+
+    <!-- Navigation Header -->
+    <header class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-lg sticky top-0 z-40 no-print border-b-2 border-indigo-500/40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-gradient-to-tr from-indigo-600 to-violet-500 rounded-xl shadow-md shadow-indigo-500/30">
+                    <i data-lucide="shuffle" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-100 to-indigo-300">ExamShuffle Pro</h1>
+                    <p class="text-xs font-medium text-indigo-300/80">Test Questionnaire Randomizer & Exporter</p>
+                </div>
+            </div>
+
+            <!-- Global Action Stats / Indicators -->
+            <div class="flex items-center space-x-3 text-xs sm:text-sm">
+                <div class="hidden sm:flex items-center space-x-2 bg-indigo-900/60 border-2 border-indigo-500/50 px-3.5 py-1.5 rounded-full shadow-inner">
+                    <i data-lucide="help-circle" class="w-4 h-4 text-indigo-300"></i>
+                    <span class="text-slate-200">Items: <strong id="globalItemCount" class="text-amber-300 font-extrabold text-sm">0</strong></span>
+                </div>
+                <div class="hidden md:flex items-center space-x-2 bg-emerald-950/60 border-2 border-emerald-500/50 px-3.5 py-1.5 rounded-full shadow-inner">
+                    <i data-lucide="layers" class="w-4 h-4 text-emerald-400"></i>
+                    <span class="text-slate-200">Active Key: <strong id="globalActiveVersion" class="text-emerald-300 font-extrabold text-sm">Version A</strong></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs Bar with High-Visibility Scrollbar & Conspicuous Buttons -->
+    <div class="bg-slate-900 border-b-4 border-indigo-600 shadow-xl no-print sticky top-16 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
+            <!-- Scrollable Tabs Track with Bold Styling -->
+            <nav class="flex space-x-2 sm:space-x-3 overflow-x-auto pb-1.5 pt-0.5 items-center" id="mainTabs" aria-label="Main Navigation">
+                
+                <button onclick="switchTab('tab-header')" id="btn-tab-header" class="tab-btn flex items-center space-x-2.5 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl whitespace-nowrap transition-all duration-200 bg-indigo-600 text-white shadow-md shadow-indigo-600/40 ring-2 ring-indigo-400">
+                    <i data-lucide="file-text" class="w-4 h-4 text-white"></i>
+                    <span>1. Exam Details</span>
+                </button>
+
+                <button onclick="switchTab('tab-upload')" id="btn-tab-upload" class="tab-btn flex items-center space-x-2.5 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl whitespace-nowrap transition-all duration-200 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700">
+                    <i data-lucide="upload-cloud" class="w-4 h-4 text-blue-400"></i>
+                    <span>2. Upload / Input Questions</span>
+                </button>
+
+                <button onclick="switchTab('tab-edit')" id="btn-tab-edit" class="tab-btn flex items-center space-x-2.5 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl whitespace-nowrap transition-all duration-200 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700">
+                    <i data-lucide="edit-3" class="w-4 h-4 text-emerald-400"></i>
+                    <span>3. Review & Edit Items</span>
+                </button>
+
+                <button onclick="switchTab('tab-randomize')" id="btn-tab-randomize" class="tab-btn flex items-center space-x-2.5 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl whitespace-nowrap transition-all duration-200 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700">
+                    <i data-lucide="sliders" class="w-4 h-4 text-violet-400"></i>
+                    <span>4. Randomize & Export</span>
+                </button>
+
+                <button onclick="switchTab('tab-classroom')" id="btn-tab-classroom" class="tab-btn flex items-center space-x-2.5 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl whitespace-nowrap transition-all duration-200 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700">
+                    <i data-lucide="presentation" class="w-4 h-4 text-cyan-400"></i>
+                    <span>5. Classroom Mode</span>
+                </button>
+
+                <button onclick="switchTab('tab-peer-checking')" id="btn-tab-peer-checking" class="tab-btn flex items-center space-x-2.5 px-4 py-2.5 text-xs sm:text-sm font-extrabold rounded-xl whitespace-nowrap transition-all duration-200 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md hover:from-amber-400 hover:to-amber-500 border-2 border-amber-300">
+                    <i data-lucide="check-square" class="w-4.5 h-4.5 text-slate-950"></i>
+                    <span>6. Peer Checking Mode</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- MAIN WRAPPER CONTAINER WITH RIGHT SIDEBAR FOR AD -->
+    <div class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6">
+
+        <!-- MAIN CONTENT CONTAINER -->
+        <main class="flex-1 w-full min-w-0">
+
+        <!-- TAB 1: HEADER & INSTRUCTIONS -->
+        <div id="tab-header" class="tab-content block space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                        <i data-lucide="heading" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-semibold text-slate-900">Exam Header Information</h2>
+                        <p class="text-xs text-slate-500">Specify school details, exam title, and course specifics for the printed header.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">School / University Name</label>
+                        <input type="text" id="inputSchoolName" value="ST. JUDE ACADEMIC INSTITUTE" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Department / College</label>
+                        <input type="text" id="inputDepartment" value="Department of Secondary Education" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Exam Title</label>
+                        <input type="text" id="inputExamTitle" value="MIDTERM EXAMINATION IN SCIENCE 10" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Subject / Course Code</label>
+                        <input type="text" id="inputSubject" value="SCI-101: General Biology" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Teacher / Instructor Name</label>
+                        <input type="text" id="inputTeacher" value="Prof. Alex Mercer, M.Sc." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Term / School Year</label>
+                        <input type="text" id="inputTerm" value="1st Semester | S.Y. 2026-2027" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">General Instructions</label>
+                    <textarea id="inputInstructions" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">Read each item carefully. Select or write the best answer for each question. Strictly NO ERASURES allowed on the final answer sheet. Manage your time effectively.</textarea>
+                </div>
+            </div>
+
+            <!-- Live Header Preview -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Header Preview</h3>
+                <div class="p-6 border border-slate-300 rounded-lg bg-slate-50 font-serif text-slate-900 text-center space-y-1">
+                    <h2 id="prevSchool" class="font-bold text-base uppercase">ST. JUDE ACADEMIC INSTITUTE</h2>
+                    <p id="prevDept" class="text-xs italic text-slate-600">Department of Secondary Education</p>
+                    <h1 id="prevTitle" class="font-bold text-lg mt-2 underline">MIDTERM EXAMINATION IN SCIENCE 10</h1>
+                    <p id="prevSubj" class="text-sm font-semibold">SCI-101: General Biology</p>
+                    <p id="prevTerm" class="text-xs text-slate-500">1st Semester | S.Y. 2026-2027</p>
+
+                    <div class="grid grid-cols-2 text-left text-xs mt-4 pt-3 border-t border-slate-300 font-sans">
+                        <div>
+                            <p><strong>Name:</strong> ____________________________________</p>
+                            <p class="mt-2"><strong>Grade & Section:</strong> ________________________</p>
+                        </div>
+                        <div class="text-right">
+                            <p><strong>Date:</strong> ____________________</p>
+                            <p class="mt-2"><strong>Score:</strong> ______ / <span id="prevTotalItems">0</span></p>
+                        </div>
+                    </div>
+                    <div class="text-left text-xs font-sans mt-3 pt-2 border-t border-slate-200">
+                        <p><strong>Instructor:</strong> <span id="prevTeacher">Prof. Alex Mercer, M.Sc.</span></p>
+                        <p class="mt-1 italic"><strong>Instructions:</strong> <span id="prevInstructions">Read each item carefully...</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: UPLOAD & PARSE QUESTIONS -->
+        <div id="tab-upload" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Option A: File Upload -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                                <i data-lucide="file-up" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-semibold text-slate-900">Upload Test Document</h2>
+                                <p class="text-xs text-slate-500">Upload a Microsoft Word (.docx) or Text file (.txt)</p>
+                            </div>
+                        </div>
+
+                        <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-indigo-500 transition cursor-pointer bg-slate-50 hover:bg-indigo-50/30">
+                            <i data-lucide="file-text" class="w-12 h-12 text-slate-400 mx-auto mb-3"></i>
+                            <p class="text-sm font-medium text-slate-700">Drag & drop your test file here, or <span class="text-indigo-600 underline">browse</span></p>
+                            <p class="text-xs text-slate-400 mt-1">Supports Microsoft Word (.docx) and Plain Text (.txt)</p>
+                            <input type="file" id="fileInput" accept=".docx,.txt" class="hidden">
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-indigo-50 rounded-lg text-xs text-indigo-800 border border-indigo-100 flex items-start space-x-2">
+                        <i data-lucide="info" class="w-4 h-4 text-indigo-600 shrink-0 mt-0.5"></i>
+                        <span><strong>Tip:</strong> Ensure items are numbered (e.g., 1., 2.) and choices begin with letters (e.g., A., B., C., D.). Correct answers marked with an asterisk (*A.), `[Ans: A]`, or `Answer: B` will be detected automatically!</span>
+                    </div>
+                </div>
+
+                <!-- Option B: Direct Text Paste -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                            <i data-lucide="clipboard-text" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-slate-900">Paste Plain Text Questionnaire</h2>
+                            <p class="text-xs text-slate-500">Paste your raw questionnaire text directly into the box</p>
+                        </div>
+                    </div>
+
+                    <textarea id="rawTextPaste" rows="9" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-xs font-mono" placeholder="1. What is the primary organ of photosynthesis in plants?
+A. Root
+*B. Leaf
+C. Stem
+D. Flower
+
+2. Light travels faster than sound.
+*A. True
+B. False
+
+3. What gas do humans exhale?
+Answer: Carbon Dioxide"></textarea>
+
+                    <button onclick="parseRawText()" class="mt-4 w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm flex items-center justify-center space-x-2 transition shadow">
+                        <i data-lucide="wand-2" class="w-4 h-4"></i>
+                        <span>Auto-Parse & Load Questions</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Formatting Guide -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Supported Formatting Syntax</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <p class="font-bold text-slate-800 border-b pb-1 mb-2">Multiple Choice</p>
+                        <p class="text-slate-600">1. Question text here<br>A. Option 1<br>*B. Correct Option<br>C. Option 3<br>D. Option 4</p>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <p class="font-bold text-slate-800 border-b pb-1 mb-2">True or False</p>
+                        <p class="text-slate-600">2. Earth is the third planet from the sun.<br>*A. True<br>B. False</p>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <p class="font-bold text-slate-800 border-b pb-1 mb-2">Identification / Short Answer</p>
+                        <p class="text-slate-600">3. The process of cell division is called ___.<br>Answer: Mitosis</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: REVIEW & EDIT QUESTIONS -->
+        <div id="tab-edit" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Question Item Manager</h2>
+                    <p class="text-xs text-slate-500">Edit items, flag correct answers, add choices, or reorder items manually.</p>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <button onclick="addNewQuestion()" class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-semibold rounded-lg flex items-center space-x-1 border border-indigo-200 transition">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Add Question</span>
+                    </button>
+                    <button onclick="clearAllQuestions()" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-lg flex items-center space-x-1 border border-rose-200 transition">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        <span>Clear All</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- List of Parsed Items -->
+            <div id="questionsContainer" class="space-y-4">
+                <div class="text-center py-12 bg-white rounded-xl border border-slate-200">
+                    <i data-lucide="help-circle" class="w-12 h-12 text-slate-300 mx-auto mb-2"></i>
+                    <p class="text-sm font-medium text-slate-600">No questions loaded yet.</p>
+                    <p class="text-xs text-slate-400 mt-1">Upload a Word file or paste text in Tab 2 to get started.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: RANDOMIZE & EXPORT -->
+        <div id="tab-randomize" class="tab-content hidden space-y-6">
+            <!-- Controls Bar -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-4">
+                <div class="flex items-center justify-between border-b pb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900">Randomization & Export Engine</h2>
+                        <p class="text-xs text-slate-500">Generate randomized exam sets (Versions A, B, C, etc.) and export or print.</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="randomizeCurrentSet()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg flex items-center space-x-2 shadow transition">
+                            <i data-lucide="shuffle" class="w-4 h-4"></i>
+                            <span>Shuffle Current Set</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <!-- Toggle Choice Shuffle -->
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <div>
+                            <span class="font-semibold text-slate-700 block">Shuffle Options/Choices</span>
+                            <span class="text-slate-400 text-[11px]">Randomize A, B, C, D order</span>
+                        </div>
+                        <input type="checkbox" id="toggleShuffleChoices" checked class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
+                    </div>
+
+                    <!-- Version Generator -->
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <div>
+                            <span class="font-semibold text-slate-700 block">Generate Multiple Versions</span>
+                            <span class="text-slate-400 text-[11px]">Creates independent shuffled sets</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <select id="selectVersionCount" class="border border-slate-300 rounded px-2 py-1 text-xs">
+                                <option value="1">1 Version</option>
+                                <option value="2">2 Versions (A, B)</option>
+                                <option value="3">3 Versions (A, B, C)</option>
+                                <option value="4">4 Versions (A, B, C, D)</option>
+                            </select>
+                            <button onclick="generateMultipleVersions()" class="px-2 py-1 bg-slate-800 text-white rounded font-medium hover:bg-slate-700">Generate</button>
+                        </div>
+                    </div>
+
+                    <!-- Answer Key Toggle -->
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <div>
+                            <span class="font-semibold text-slate-700 block">Include Answer Key</span>
+                            <span class="text-slate-400 text-[11px]">Appends answer key at the bottom</span>
+                        </div>
+                        <input type="checkbox" id="toggleIncludeAnswerKey" checked onchange="renderExamPreview()" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <!-- Generated Versions Nav Tabs -->
+                <div id="versionTabsContainer" class="flex space-x-2 pt-2 overflow-x-auto border-t border-slate-100">
+                    <!-- Tabs rendered dynamically -->
+                </div>
+            </div>
+
+            <!-- Export Bar -->
+            <div class="flex flex-wrap items-center justify-between gap-3 bg-indigo-900 text-white p-4 rounded-xl shadow-md">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="download" class="w-5 h-5 text-indigo-300"></i>
+                    <span class="text-xs font-semibold">Export Active Exam Paper:</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="window.print()" class="px-3 py-2 bg-white text-slate-900 hover:bg-slate-100 text-xs font-semibold rounded-lg flex items-center space-x-1.5 transition">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        <span>Direct Print / PDF</span>
+                    </button>
+                    <button onclick="exportToWord()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg flex items-center space-x-1.5 transition">
+                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                        <span>Export MS Word (.docx)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Live Printable Document Sheet Preview -->
+            <div class="bg-slate-200 p-4 sm:p-8 rounded-xl flex justify-center overflow-x-auto">
+                <div id="printablePaper" class="exam-paper bg-white shadow-xl border border-slate-300 rounded-sm p-8 sm:p-12 w-full max-w-3xl min-h-[1050px] font-serif text-slate-900 leading-relaxed text-sm">
+                    <!-- Printed header & questions content dynamically rendered here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: CLASSROOM PRESENTATION MODE -->
+        <div id="tab-classroom" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900 text-white rounded-2xl p-6 sm:p-10 shadow-2xl relative overflow-hidden">
+                <!-- Top Toolbar -->
+                <div class="flex flex-col sm:flex-row items-center justify-between border-b-2 border-indigo-500/40 pb-5 mb-6 gap-4 bg-slate-800/60 p-4 rounded-xl border border-slate-700">
+                    <div class="flex items-center space-x-3">
+                        <span id="presentationVersionTag" class="px-3.5 py-1.5 bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-xs font-black rounded-full uppercase tracking-wider shadow-md border border-indigo-300/40">Version A</span>
+                        <h2 class="text-base font-bold text-slate-100" id="presentationTitle">Science Midterm Examination</h2>
+                    </div>
+
+                    <!-- Classroom Controls: Font Size Scaling & Timer -->
+                    <div class="flex flex-wrap items-center justify-end gap-3">
+                        <!-- Font Size Adjustment Control -->
+                        <div class="flex items-center space-x-2 bg-slate-950 px-3.5 py-2 rounded-xl border-2 border-indigo-500/60 text-xs shadow-md">
+                            <i data-lucide="type" class="w-4 h-4 text-indigo-400"></i>
+                            <span class="text-slate-200 font-bold">Text Size:</span>
+                            <button onclick="changeClassroomFontSize(-2)" title="Decrease Font Size" class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-100 transition font-black text-xs border border-slate-600">A-</button>
+                            <span id="fontSizeDisplay" class="font-mono text-indigo-300 font-extrabold px-1.5 min-w-[2.5rem] text-center text-sm">24px</span>
+                            <button onclick="changeClassroomFontSize(2)" title="Increase Font Size" class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-100 transition font-black text-xs border border-slate-600">A+</button>
+                            <!-- Presets -->
+                            <div class="flex space-x-1 ml-1 border-l-2 border-slate-700 pl-2">
+                                <button onclick="setClassroomFontSize(18)" class="px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-200 font-semibold border border-slate-700">Default</button>
+                                <button onclick="setClassroomFontSize(28)" class="px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-200 font-semibold border border-slate-700">Large</button>
+                                <button onclick="setClassroomFontSize(38)" class="px-2 py-1 rounded-md bg-indigo-600 hover:bg-indigo-500 text-[11px] text-white font-extrabold shadow">X-Large</button>
+                            </div>
+                        </div>
+
+                        <!-- Countdown Timer Control -->
+                        <div class="flex items-center space-x-3 bg-slate-950 px-3.5 py-2 rounded-xl border-2 border-amber-500/60 shadow-md">
+                            <i data-lucide="clock" class="w-4.5 h-4.5 text-amber-400"></i>
+                            <span id="timerDisplay" class="font-mono text-xl font-black tracking-widest text-amber-300">00:00:00</span>
+                            <div class="flex items-center space-x-1">
+                                <button onclick="startTimer()" title="Start Timer" class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-emerald-400 transition"><i data-lucide="play" class="w-4 h-4"></i></button>
+                                <button onclick="pauseTimer()" title="Pause Timer" class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-amber-400 transition"><i data-lucide="pause" class="w-4 h-4"></i></button>
+                                <button onclick="resetTimer()" title="Reset Timer" class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-rose-400 transition"><i data-lucide="rotate-ccw" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide Question Display Card -->
+                <div class="min-h-[360px] flex flex-col justify-between bg-slate-800/90 border-2 border-slate-700 rounded-2xl p-6 sm:p-8 shadow-xl">
+                    <div>
+                        <div class="flex items-center justify-between text-xs text-indigo-300 font-bold mb-4 bg-slate-900/60 px-4 py-2 rounded-xl border border-slate-700/80">
+                            <span id="presentationItemIndex" class="text-sm text-indigo-200">Question 1 of 10</span>
+                            <span id="presentationItemType" class="uppercase tracking-wider px-2.5 py-1 bg-indigo-950 text-indigo-300 rounded-lg border border-indigo-700/60 font-extrabold">Multiple Choice</span>
+                        </div>
+
+                        <!-- Question Text -->
+                        <h3 id="presentationQuestionText" class="font-medium text-slate-100 leading-relaxed mb-6 transition-all duration-150" style="font-size: 24px;">
+                            Loading item...
+                        </h3>
+
+                        <!-- Choices List -->
+                        <div id="presentationChoicesList" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                            <!-- Choices rendered dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Slide Navigation Controls Bar -->
+                    <div class="flex items-center justify-between pt-6 border-t-2 border-slate-700/80 mt-6 bg-slate-900/50 p-3 rounded-xl">
+                        <button onclick="prevSlide()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold text-xs sm:text-sm rounded-xl flex items-center space-x-2 transition border-2 border-slate-600 shadow-md active:scale-95">
+                            <i data-lucide="chevron-left" class="w-5 h-5 text-indigo-400"></i>
+                            <span>Previous Question</span>
+                        </button>
+
+                        <div class="text-xs text-slate-400 font-mono hidden sm:block bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+                            Keyboard: &larr; Left / Right &rarr; Arrow Keys
+                        </div>
+
+                        <button onclick="nextSlide()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs sm:text-sm rounded-xl flex items-center space-x-2 transition shadow-lg shadow-indigo-600/30 active:scale-95">
+                            <span>Next Question</span>
+                            <i data-lucide="chevron-right" class="w-5 h-5 text-white"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 6: PEER CHECKING MODE -->
+        <div id="tab-peer-checking" class="tab-content hidden space-y-6">
+            <div class="bg-slate-950 text-amber-50 rounded-2xl p-6 sm:p-10 shadow-2xl border-2 border-amber-500/50 relative">
+                <!-- Top Notice Banner for Students -->
+                <div class="bg-gradient-to-r from-amber-950 to-slate-900 border-2 border-amber-500/70 rounded-2xl p-5 mb-6 flex items-center justify-between flex-wrap gap-4 shadow-xl">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-3 bg-amber-500 text-slate-950 rounded-xl font-black shadow-lg shadow-amber-500/30">
+                            <i data-lucide="users" class="w-7 h-7"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-amber-300 font-black text-base sm:text-lg tracking-wide">PEER CHECKING INSTRUCTIONS FOR STUDENTS</h3>
+                            <p class="text-amber-100/90 text-xs sm:text-sm mt-0.5">Exchange answer sheets with a classmate. Write <span class="text-amber-300 font-extrabold underline decoration-amber-400 decoration-2">"Checked by: [Your Name]"</span> at the top of the sheet.</p>
+                        </div>
+                    </div>
+
+                    <!-- Version Selector for Checking -->
+                    <div class="flex items-center space-x-2.5 bg-slate-900 px-3.5 py-2 rounded-xl border border-amber-500/60 shadow">
+                        <span class="text-xs text-amber-300 font-extrabold uppercase tracking-wider">Active Key:</span>
+                        <select id="peerCheckingVersionSelect" onchange="switchPeerCheckingVersion(this.value)" class="bg-amber-950 border-2 border-amber-500 text-amber-100 text-xs font-black rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-amber-400 cursor-pointer shadow-inner">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Peer Checking Toolbar -->
+                <div class="flex flex-col sm:flex-row items-center justify-between border-b-2 border-amber-800/60 pb-5 mb-6 gap-4 bg-amber-950/40 p-4 rounded-xl border border-amber-800/50">
+                    <div class="flex items-center space-x-2">
+                        <button onclick="setPeerCheckingViewMode('slide')" id="btnPeerModeSlide" class="px-4 py-2 text-xs font-black rounded-xl bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30 transition transform active:scale-95">
+                            Guided Question-by-Question
+                        </button>
+                        <button onclick="setPeerCheckingViewMode('grid')" id="btnPeerModeGrid" class="px-4 py-2 text-xs font-bold rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-200 border-2 border-amber-700/60 transition">
+                            Show All Answer Keys Grid
+                        </button>
+                    </div>
+
+                    <!-- Peer Checking Text Scaling Controls -->
+                    <div class="flex items-center space-x-2 bg-slate-900 px-3.5 py-2 rounded-xl border-2 border-amber-500/60 text-xs shadow-md">
+                        <i data-lucide="type" class="w-4 h-4 text-amber-400"></i>
+                        <span class="text-amber-200 font-bold">Text Size:</span>
+                        <button onclick="changePeerFontSize(-2)" title="Decrease Font Size" class="p-1.5 bg-amber-950 hover:bg-amber-900 rounded-lg text-amber-100 transition font-black text-xs border border-amber-700">A-</button>
+                        <span id="peerFontSizeDisplay" class="font-mono text-amber-300 font-extrabold px-1.5 min-w-[2.5rem] text-center text-sm">26px</span>
+                        <button onclick="changePeerFontSize(2)" title="Increase Font Size" class="p-1.5 bg-amber-950 hover:bg-amber-900 rounded-lg text-amber-100 transition font-black text-xs border border-amber-700">A+</button>
+                        <div class="flex space-x-1 ml-1 border-l-2 border-amber-800 pl-2">
+                            <button onclick="setPeerFontSize(20)" class="px-2 py-1 rounded-md bg-amber-950 hover:bg-amber-900 text-[11px] text-amber-200 font-semibold border border-amber-800">Default</button>
+                            <button onclick="setPeerFontSize(30)" class="px-2 py-1 rounded-md bg-amber-950 hover:bg-amber-900 text-[11px] text-amber-200 font-semibold border border-amber-800">Large</button>
+                            <button onclick="setPeerFontSize(40)" class="px-2 py-1 rounded-md bg-amber-500 text-slate-950 font-black text-[11px] shadow">X-Large</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 1: GUIDED SLIDE VIEW WITH HIDDEN UNTIL REVEALED ANSWERS -->
+                <div id="peerSlideContainer" class="block min-h-[360px] bg-amber-950/30 border-2 border-amber-800/80 rounded-2xl p-6 sm:p-8 flex flex-col justify-between shadow-xl">
+                    <div>
+                        <div class="flex items-center justify-between text-xs text-amber-300 font-bold mb-4 bg-slate-900/80 px-4 py-2 rounded-xl border border-amber-800/80">
+                            <span id="peerItemIndex" class="text-sm text-amber-200">Checking Item 1 of 10</span>
+                            <span id="peerItemType" class="uppercase tracking-wider px-2.5 py-1 bg-amber-950 text-amber-300 rounded-lg border border-amber-700 font-extrabold">Multiple Choice</span>
+                        </div>
+
+                        <!-- Question Text -->
+                        <h3 id="peerQuestionText" class="font-medium text-amber-50 leading-relaxed mb-6 transition-all duration-150" style="font-size: 26px;">
+                            Loading item...
+                        </h3>
+
+                        <!-- Choices List (Hidden Correctness by default until Revealed) -->
+                        <div id="peerChoicesList" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                            <!-- Rendered dynamically -->
+                        </div>
+
+                        <!-- Correct Answer Reveal Card / Button -->
+                        <div class="mt-6">
+                            <div id="peerAnswerHiddenBox" class="p-4 rounded-xl bg-slate-900/90 border-2 border-dashed border-amber-500/80 text-amber-200 flex items-center justify-between flex-wrap gap-3 shadow-lg">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2.5 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/40">
+                                        <i data-lucide="help-circle" class="w-6 h-6"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs uppercase tracking-widest font-black text-amber-400 block">GUESS FIRST!</span>
+                                        <span class="text-sm font-bold text-amber-100">Students guess the answer before revealing.</span>
+                                    </div>
+                                </div>
+                                <button onclick="revealPeerAnswer()" id="btnRevealAnswer" class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 rounded-xl text-xs sm:text-sm font-black shadow-lg shadow-emerald-500/30 flex items-center space-x-2 transition transform active:scale-95 border border-emerald-300">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                    <span>Reveal Answer</span>
+                                </button>
+                            </div>
+
+                            <div id="peerAnswerRevealBox" class="hidden p-4 rounded-xl bg-emerald-950/95 border-2 border-emerald-400 text-emerald-200 flex items-center justify-between transition-all duration-300 animate-fadeIn shadow-2xl">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2.5 bg-emerald-500 text-slate-950 rounded-xl font-black shadow-md">
+                                        <i data-lucide="check-circle" class="w-6 h-6"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs uppercase tracking-widest font-black text-emerald-400 block">OFFICIAL CORRECT ANSWER</span>
+                                        <span id="peerCorrectAnswerText" class="text-base sm:text-lg font-black text-white">Option B</span>
+                                    </div>
+                                </div>
+                                <button onclick="hidePeerAnswer()" id="btnTogglePeerAnswer" class="px-3 py-1.5 bg-emerald-900 hover:bg-emerald-800 text-emerald-100 rounded-lg text-xs font-bold border border-emerald-600 transition">
+                                    Hide Answer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide Controls -->
+                    <div class="flex items-center justify-between pt-6 border-t-2 border-amber-800/60 mt-6 bg-slate-900/60 p-3 rounded-xl border border-amber-900">
+                        <button onclick="prevPeerSlide()" class="px-5 py-2.5 bg-amber-950 hover:bg-amber-900 text-amber-200 text-xs sm:text-sm font-bold rounded-xl flex items-center space-x-2 transition border-2 border-amber-700 shadow-md">
+                            <i data-lucide="chevron-left" class="w-5 h-5 text-amber-400"></i>
+                            <span>Previous Item</span>
+                        </button>
+
+                        <div class="text-xs text-amber-300/80 font-mono hidden sm:block bg-slate-950 px-3.5 py-1.5 rounded-lg border border-amber-900/80">
+                            Guess Answer &rarr; Click Reveal
+                        </div>
+
+                        <button onclick="nextPeerSlide()" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs sm:text-sm font-black rounded-xl flex items-center space-x-2 transition shadow-lg shadow-amber-500/30 active:scale-95">
+                            <span>Next Item</span>
+                            <i data-lucide="chevron-right" class="w-5 h-5 text-slate-950"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- VIEW 2: FULL ANSWER KEY GRID VIEW -->
+                <div id="peerGridContainer" class="hidden bg-amber-950/30 border-2 border-amber-800/80 rounded-2xl p-6 sm:p-8 shadow-xl">
+                    <div class="flex items-center justify-between mb-6 pb-4 border-b-2 border-amber-800">
+                        <h3 class="text-amber-200 font-extrabold text-base flex items-center space-x-2">
+                            <i data-lucide="grid" class="w-5 h-5 text-amber-400"></i>
+                            <span>Complete Official Answer Key Grid</span>
+                        </h3>
+                        <button onclick="setPeerCheckingViewMode('slide')" class="text-xs font-bold text-amber-300 underline hover:text-amber-100">
+                            Back to Guided View
+                        </button>
+                    </div>
+
+                    <div id="peerAnswerGridContent" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        </main>
+
+        <!-- RIGHT SIDEBAR AD UNIT (RESPONSIVE) -->
+        <aside class="no-print w-full lg:w-80 shrink-0 flex flex-col items-center">
+            <div class="sticky top-32 w-full bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Advertisement</span>
+                <!-- Google AdSense Container: Replace data-ad-client and data-ad-slot with your AdSense details -->
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                     data-ad-slot="0987654321"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 no-print"></div>
+
+    <!-- Application Engine JavaScript Logic -->
+    <script>
+        // Global Application State Variables
+        let questionsData = [];
+        let generatedVersions = {}; // Holds { 'Version A': [...], 'Version B': [...] }
+        let activeVersionKey = 'Version A';
+        let currentSlideIndex = 0;
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let classroomFontSize = 24; // Default font size in pixels for classroom presentation mode
+        let peerFontSize = 26; // Default font size in pixels for peer checking mode
+        let peerCheckingSlideIndex = 0;
+        let peerCheckingViewMode = 'slide'; // 'slide' or 'grid'
+        let peerAnswerVisible = false; // Default: hidden until teacher/students guess and click reveal
+
+        // Default Sample Data Initialization
+        const sampleQuestions = [
+            {
+                id: 1,
+                question: "Which of the following cellular organelles is primarily responsible for ATP energy production?",
+                type: "Multiple Choice",
+                choices: ["Nucleus", "Mitochondria", "Ribosome", "Endoplasmic Reticulum"],
+                correctAnswer: "Mitochondria"
+            },
+            {
+                id: 2,
+                question: "Photosynthesis takes place predominantly in which part of the plant cell?",
+                type: "Multiple Choice",
+                choices: ["Chloroplast", "Vacuole", "Golgi Body", "Cell Wall"],
+                correctAnswer: "Chloroplast"
+            },
+            {
+                id: 3,
+                question: "Deoxyribonucleic acid (DNA) possesses a double-helix structure.",
+                type: "True/False",
+                choices: ["True", "False"],
+                correctAnswer: "True"
+            },
+            {
+                id: 4,
+                question: "What is the term given to the process by which liquid water changes into water vapor?",
+                type: "Identification",
+                choices: [],
+                correctAnswer: "Evaporation"
+            }
+        ];
+
+        // Initialize Application
+        window.addEventListener('DOMContentLoaded', () => {
+            questionsData = [...sampleQuestions];
+            generatedVersions['Version A'] = JSON.parse(JSON.stringify(questionsData));
+            
+            updateHeaderPreviewListeners();
+            renderHeaderPreview();
+            renderQuestionsEditor();
+            updateGlobalStats();
+            setupDragAndDrop();
+            
+            // Re-initialize Lucide Icons
+            lucide.createIcons();
+        });
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            
+            // Reset all tab styling to sleek dark mode base style
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.id === 'btn-tab-peer-checking') {
+                    btn.className = "tab-btn flex items-center space-x-2.5 px-4 py-2.5 text-xs sm:text-sm font-extrabold rounded-xl whitespace-nowrap transition-all duration-200 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 border-2 border-amber-300 opacity-90 hover:opacity-100";
+                } else {
+                    btn.className = "tab-btn flex items-center space-x-2.5 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl whitespace-nowrap transition-all duration-200 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700";
+                }
+            });
+
+            // Unhide selected content block
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            // Apply vibrant, conspicuous active highlighting
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            if (activeBtn) {
+                if (tabId === 'tab-peer-checking') {
+                    activeBtn.className = "tab-btn flex items-center space-x-2.5 px-4 py-2.5 text-xs sm:text-sm font-black rounded-xl whitespace-nowrap transition-all duration-200 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 text-slate-950 shadow-lg shadow-amber-500/40 ring-4 ring-amber-300/80 border-2 border-amber-200 scale-105 z-10";
+                } else {
+                    activeBtn.className = "tab-btn flex items-center space-x-2.5 px-4 py-2.5 text-xs sm:text-sm font-black rounded-xl whitespace-nowrap transition-all duration-200 bg-indigo-600 text-white shadow-lg shadow-indigo-600/40 ring-4 ring-indigo-400/80 border-2 border-indigo-300 scale-105 z-10";
+                }
+            }
+
+            if (tabId === 'tab-randomize') {
+                renderVersionTabs();
+                renderExamPreview();
+            } else if (tabId === 'tab-classroom') {
+                initClassroomMode();
+            } else if (tabId === 'tab-peer-checking') {
+                initPeerCheckingMode();
+            }
+        }
+
+        function updateHeaderPreviewListeners() {
+            const inputs = ['SchoolName', 'Department', 'ExamTitle', 'Subject', 'Teacher', 'Term', 'Instructions'];
+            inputs.forEach(id => {
+                const el = document.getElementById(`input${id}`);
+                if (el) {
+                    el.addEventListener('input', renderHeaderPreview);
+                }
+            });
+        }
+
+        function renderHeaderPreview() {
+            document.getElementById('prevSchool').innerText = document.getElementById('inputSchoolName').value || 'SCHOOL NAME';
+            document.getElementById('prevDept').innerText = document.getElementById('inputDepartment').value || '';
+            document.getElementById('prevTitle').innerText = document.getElementById('inputExamTitle').value || 'EXAMINATION';
+            document.getElementById('prevSubj').innerText = document.getElementById('inputSubject').value || '';
+            document.getElementById('prevTeacher').innerText = document.getElementById('inputTeacher').value || '';
+            document.getElementById('prevTerm').innerText = document.getElementById('inputTerm').value || '';
+            document.getElementById('prevInstructions').innerText = document.getElementById('inputInstructions').value || '';
+            document.getElementById('prevTotalItems').innerText = questionsData.length;
+        }
+
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+
+            dropZone.addEventListener('click', () => fileInput.click());
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('border-indigo-500', 'bg-indigo-50');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('border-indigo-500', 'bg-indigo-50');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-indigo-500', 'bg-indigo-50');
+                if (e.dataTransfer.files.length > 0) {
+                    handleFileUpload(e.dataTransfer.files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileUpload(e.target.files[0]);
+                }
+            });
+        }
+
+        function handleFileUpload(file) {
+            const fileName = file.name.toLowerCase();
+            showToast(`Uploading ${file.name}...`, 'info');
+
+            if (fileName.endsWith('.docx')) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    mammoth.extractRawText({ arrayBuffer: event.target.result })
+                        .then(result => {
+                            parseTextContent(result.value);
+                            showToast('Word document parsed successfully!', 'success');
+                        })
+                        .catch(err => {
+                            showToast('Error reading Word document file.', 'error');
+                            console.error(err);
+                        });
+                };
+                reader.readAsArrayBuffer(file);
+            } else if (fileName.endsWith('.txt')) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    parseTextContent(event.target.result);
+                    showToast('Text file parsed successfully!', 'success');
+                };
+                reader.readAsText(file);
+            } else {
+                showToast('Unsupported file format. Please upload .docx or .txt', 'error');
+            }
+        }
+
+        function parseRawText() {
+            const raw = document.getElementById('rawTextPaste').value;
+            if (!raw.trim()) {
+                showToast('Please paste or enter questionnaire text first.', 'error');
+                return;
+            }
+            parseTextContent(raw);
+            showToast('Text parsed into questionnaire items!', 'success');
+        }
+
+        function parseTextContent(text) {
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+            const parsedItems = [];
+            let currentItem = null;
+
+            const qNumRegex = /^(\d+)[\.\)]\s*(.+)/;
+            const choiceRegex = /^(\*?)([A-Ea-e])[\.\)]\s*(.+)/;
+            const answerRegex = /^Answer:\s*(.+)/i;
+            const bracketAnsRegex = /\[Ans:\s*([A-Ea-e])\]/i;
+
+            lines.forEach(line => {
+                const qMatch = line.match(qNumRegex);
+                const choiceMatch = line.match(choiceRegex);
+                const ansMatch = line.match(answerRegex);
+                const bracketMatch = line.match(bracketAnsRegex);
+
+                if (qMatch) {
+                    if (currentItem) parsedItems.push(currentItem);
+                    currentItem = {
+                        id: parsedItems.length + 1,
+                        question: qMatch[2],
+                        type: 'Multiple Choice',
+                        choices: [],
+                        correctAnswer: ''
+                    };
+                    if (bracketMatch) {
+                        currentItem.pendingBracketAns = bracketMatch[1].toUpperCase();
+                        currentItem.question = currentItem.question.replace(bracketAnsRegex, '').trim();
+                    }
+                } else if (choiceMatch && currentItem) {
+                    const isStarred = choiceMatch[1] === '*';
+                    const letter = choiceMatch[2].toUpperCase();
+                    const choiceText = choiceMatch[3];
+                    currentItem.choices.push(choiceText);
+                    
+                    if (isStarred || (currentItem.pendingBracketAns && currentItem.pendingBracketAns === letter)) {
+                        currentItem.correctAnswer = choiceText;
+                    }
+                } else if (ansMatch && currentItem) {
+                    currentItem.correctAnswer = ansMatch[1].trim();
+                } else if (currentItem) {
+                    currentItem.question += " " + line;
+                }
+            });
+
+            if (currentItem) parsedItems.push(currentItem);
+
+            // Determine question types dynamically
+            parsedItems.forEach(item => {
+                if (item.choices.length === 0) {
+                    item.type = 'Identification';
+                } else if (item.choices.length === 2 && 
+                          item.choices.some(c => c.toLowerCase() === 'true') && 
+                          item.choices.some(c => c.toLowerCase() === 'false')) {
+                    item.type = 'True/False';
+                } else {
+                    item.type = 'Multiple Choice';
+                }
+            });
+
+            if (parsedItems.length > 0) {
+                questionsData = parsedItems;
+                generatedVersions = { 'Version A': JSON.parse(JSON.stringify(questionsData)) };
+                activeVersionKey = 'Version A';
+                
+                updateGlobalStats();
+                renderQuestionsEditor();
+                switchTab('tab-edit');
+            } else {
+                showToast('Could not detect numbered items. Please check formatting format.', 'error');
+            }
+        }
+
+        function renderQuestionsEditor() {
+            const container = document.getElementById('questionsContainer');
+            if (questionsData.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 bg-white rounded-xl border border-slate-200">
+                        <i data-lucide="help-circle" class="w-12 h-12 text-slate-300 mx-auto mb-2"></i>
+                        <p class="text-sm font-medium text-slate-600">No questions loaded yet.</p>
+                        <p class="text-xs text-slate-400 mt-1">Upload a Word file or paste text in Tab 2 to get started.</p>
+                    </div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = questionsData.map((q, idx) => `
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 transition hover:border-slate-300">
+                    <div class="flex items-start justify-between gap-4 mb-3">
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-slate-800 text-white font-bold text-xs px-2.5 py-1 rounded-md">#${idx + 1}</span>
+                            <select onchange="updateQuestionType(${idx}, this.value)" class="text-xs border border-slate-300 rounded px-2 py-1 bg-slate-50 font-medium text-slate-700">
+                                <option value="Multiple Choice" ${q.type === 'Multiple Choice' ? 'selected' : ''}>Multiple Choice</option>
+                                <option value="True/False" ${q.type === 'True/False' ? 'selected' : ''}>True / False</option>
+                                <option value="Identification" ${q.type === 'Identification' ? 'selected' : ''}>Identification / Short Answer</option>
+                            </select>
+                        </div>
+                        <button onclick="deleteQuestion(${idx})" class="text-slate-400 hover:text-rose-600 p-1 rounded transition" title="Delete Question">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <!-- Question Input -->
+                    <div class="mb-3">
+                        <input type="text" value="${escapeHtml(q.question)}" onchange="updateQuestionText(${idx}, this.value)" 
+                            class="w-full font-medium text-slate-900 border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                    </div>
+
+                    <!-- Choices Inputs (If applicable) -->
+                    ${q.type !== 'Identification' ? `
+                        <div class="space-y-2 ml-2 pl-3 border-l-2 border-slate-200">
+                            <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Choices / Options (Check radio for correct answer):</label>
+                            ${q.choices.map((c, cIdx) => `
+                                <div class="flex items-center space-x-2">
+                                    <input type="radio" name="correct_${idx}" ${q.correctAnswer === c ? 'checked' : ''} 
+                                        onchange="setCorrectAnswer(${idx}, '${escapeHtml(c)}')" class="text-indigo-600 focus:ring-indigo-500">
+                                    <input type="text" value="${escapeHtml(c)}" onchange="updateChoiceText(${idx}, ${cIdx}, this.value)"
+                                        class="flex-1 text-xs border border-slate-300 rounded px-2 py-1 focus:ring-1 focus:ring-indigo-500">
+                                    <button onclick="removeChoice(${idx}, ${cIdx})" class="text-slate-300 hover:text-rose-500 p-1">
+                                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </div>
+                            `).join('')}
+                            <button onclick="addChoice(${idx})" class="mt-1 text-xs text-indigo-600 font-semibold hover:underline flex items-center space-x-1">
+                                <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                                <span>Add Choice</span>
+                            </button>
+                        </div>
+                    ` : `
+                        <div class="mt-2">
+                            <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Correct Answer Key:</label>
+                            <input type="text" value="${escapeHtml(q.correctAnswer || '')}" onchange="updateIdentificationAnswer(${idx}, this.value)" 
+                                placeholder="Enter correct answer..." class="w-full text-xs border border-slate-300 rounded px-3 py-1.5 mt-1 focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    `}
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+            renderHeaderPreview();
+        }
+
+        function updateQuestionText(index, val) {
+            questionsData[index].question = val;
+            syncVersions();
+        }
+
+        function updateQuestionType(index, type) {
+            questionsData[index].type = type;
+            if (type === 'True/False') {
+                questionsData[index].choices = ['True', 'False'];
+            } else if (type === 'Identification') {
+                questionsData[index].choices = [];
+            }
+            renderQuestionsEditor();
+            syncVersions();
+        }
+
+        function updateChoiceText(qIdx, cIdx, val) {
+            const oldVal = questionsData[qIdx].choices[cIdx];
+            questionsData[qIdx].choices[cIdx] = val;
+            if (questionsData[qIdx].correctAnswer === oldVal) {
+                questionsData[qIdx].correctAnswer = val;
+            }
+            syncVersions();
+        }
+
+        function setCorrectAnswer(qIdx, choiceVal) {
+            questionsData[qIdx].correctAnswer = choiceVal;
+            syncVersions();
+        }
+
+        function updateIdentificationAnswer(qIdx, val) {
+            questionsData[qIdx].correctAnswer = val;
+            syncVersions();
+        }
+
+        function addChoice(qIdx) {
+            questionsData[qIdx].choices.push(`Option ${questionsData[qIdx].choices.length + 1}`);
+            renderQuestionsEditor();
+            syncVersions();
+        }
+
+        function removeChoice(qIdx, cIdx) {
+            questionsData[qIdx].choices.splice(cIdx, 1);
+            renderQuestionsEditor();
+            syncVersions();
+        }
+
+        function deleteQuestion(qIdx) {
+            questionsData.splice(qIdx, 1);
+            updateGlobalStats();
+            renderQuestionsEditor();
+            syncVersions();
+            showToast('Item deleted', 'info');
+        }
+
+        function addNewQuestion() {
+            questionsData.push({
+                id: questionsData.length + 1,
+                question: "New question text item...",
+                type: "Multiple Choice",
+                choices: ["Option A", "Option B", "Option C", "Option D"],
+                correctAnswer: "Option A"
+            });
+            updateGlobalStats();
+            renderQuestionsEditor();
+            syncVersions();
+            showToast('New question added', 'success');
+        }
+
+        function clearAllQuestions() {
+            if (confirm("Are you sure you want to clear all questionnaire items?")) {
+                questionsData = [];
+                generatedVersions = { 'Version A': [] };
+                updateGlobalStats();
+                renderQuestionsEditor();
+                showToast('All items cleared', 'info');
+            }
+        }
+
+        function syncVersions() {
+            generatedVersions['Version A'] = JSON.parse(JSON.stringify(questionsData));
+        }
+
+        function fisherYatesShuffle(array) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function randomizeCurrentSet() {
+            const shuffleChoices = document.getElementById('toggleShuffleChoices').checked;
+            
+            let shuffled = fisherYatesShuffle(questionsData);
+            if (shuffleChoices) {
+                shuffled = shuffled.map(q => {
+                    if (q.choices && q.choices.length > 0) {
+                        return {
+                            ...q,
+                            choices: fisherYatesShuffle(q.choices)
+                        };
+                    }
+                    return q;
+                });
+            }
+
+            generatedVersions[activeVersionKey] = shuffled;
+            renderExamPreview();
+            showToast(`Randomized ${activeVersionKey} successfully!`, 'success');
+        }
+
+        function generateMultipleVersions() {
+            const count = parseInt(document.getElementById('selectVersionCount').value);
+            const shuffleChoices = document.getElementById('toggleShuffleChoices').checked;
+            
+            const versionNames = ['Version A', 'Version B', 'Version C', 'Version D'];
+            generatedVersions = {};
+
+            for (let v = 0; v < count; v++) {
+                const vName = versionNames[v];
+                let shuffled = fisherYatesShuffle(questionsData);
+                if (shuffleChoices) {
+                    shuffled = shuffled.map(q => {
+                        if (q.choices && q.choices.length > 0) {
+                            return {
+                                ...q,
+                                choices: fisherYatesShuffle(q.choices)
+                            };
+                        }
+                        return q;
+                    });
+                }
+                generatedVersions[vName] = shuffled;
+            }
+
+            activeVersionKey = 'Version A';
+            renderVersionTabs();
+            renderExamPreview();
+            showToast(`Generated ${count} randomized version(s)!`, 'success');
+        }
+
+        function renderVersionTabs() {
+            const container = document.getElementById('versionTabsContainer');
+            const keys = Object.keys(generatedVersions);
+            
+            container.innerHTML = keys.map(k => `
+                <button onclick="setActiveVersion('${k}')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition border ${activeVersionKey === k ? 'bg-indigo-600 text-white border-indigo-600 shadow' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'}">
+                    ${k}
+                </button>
+            `).join('');
+        }
+
+        function setActiveVersion(key) {
+            activeVersionKey = key;
+            document.getElementById('globalActiveVersion').innerText = key;
+            renderVersionTabs();
+            renderExamPreview();
+        }
+
+        function renderExamPreview() {
+            const paper = document.getElementById('printablePaper');
+            const items = generatedVersions[activeVersionKey] || questionsData;
+            const includeAnswerKey = document.getElementById('toggleIncludeAnswerKey').checked;
+
+            const school = document.getElementById('inputSchoolName').value || 'SCHOOL NAME';
+            const dept = document.getElementById('inputDepartment').value || '';
+            const title = document.getElementById('inputExamTitle').value || 'EXAMINATION';
+            const subj = document.getElementById('inputSubject').value || '';
+            const teacher = document.getElementById('inputTeacher').value || '';
+            const term = document.getElementById('inputTerm').value || '';
+            const instructions = document.getElementById('inputInstructions').value || '';
+
+            let html = `
+                <!-- Printed Header -->
+                <div class="text-center border-b-2 border-slate-900 pb-4 mb-6">
+                    <h2 class="font-bold text-base uppercase tracking-wider">${escapeHtml(school)}</h2>
+                    ${dept ? `<p class="text-xs italic">${escapeHtml(dept)}</p>` : ''}
+                    <h1 class="font-bold text-lg mt-2 underline">${escapeHtml(title)} - <span class="text-indigo-700 font-extrabold">${activeVersionKey}</span></h1>
+                    <p class="text-xs font-semibold mt-1">${escapeHtml(subj)} | ${escapeHtml(term)}</p>
+                    
+                    <div class="grid grid-cols-2 text-left text-xs mt-4 pt-2 border-t border-slate-300 font-sans">
+                        <div>
+                            <p><strong>Name:</strong> ____________________________________</p>
+                            <p class="mt-2"><strong>Grade & Section:</strong> ________________________</p>
+                        </div>
+                        <div class="text-right">
+                            <p><strong>Date:</strong> ____________________</p>
+                            <p class="mt-2"><strong>Score:</strong> ______ / ${items.length}</p>
+                        </div>
+                    </div>
+                    <div class="text-left text-xs font-sans mt-2 pt-2 border-t border-slate-200">
+                        <p><strong>Instructor:</strong> ${escapeHtml(teacher)}</p>
+                        <p class="mt-1"><strong>General Instructions:</strong> <em>${escapeHtml(instructions)}</em></p>
+                    </div>
+                </div>
+
+                <!-- Questionnaire Items List -->
+                <div class="space-y-6">
+            `;
+
+            items.forEach((item, idx) => {
+                html += `
+                    <div class="break-inside-avoid">
+                        <p class="font-semibold text-slate-900">
+                            ${idx + 1}. ${escapeHtml(item.question)}
+                        </p>
+                `;
+
+                if (item.choices && item.choices.length > 0) {
+                    html += `<div class="grid grid-cols-2 gap-x-6 gap-y-1 mt-2 pl-4 text-xs font-sans">`;
+                    const letters = ['A', 'B', 'C', 'D', 'E'];
+                    item.choices.forEach((c, cIdx) => {
+                        const letter = letters[cIdx] || `${cIdx + 1}`;
+                        html += `<div><strong>${letter}.</strong> ${escapeHtml(c)}</div>`;
+                    });
+                    html += `</div>`;
+                } else {
+                    html += `<div class="mt-2 pl-4 text-xs font-sans text-slate-500">Answer: ___________________________________</div>`;
+                }
+
+                html += `</div>`;
+            });
+
+            html += `</div>`;
+
+            // Answer Key Section if enabled
+            if (includeAnswerKey) {
+                html += `
+                    <div class="mt-12 pt-6 border-t-2 border-dashed border-slate-400 page-break">
+                        <h3 class="font-bold text-center uppercase tracking-widest text-sm mb-4">*** ANSWER KEY (${activeVersionKey}) ***</h3>
+                        <div class="grid grid-cols-4 sm:grid-cols-5 gap-2 text-xs font-mono bg-slate-50 p-4 rounded border border-slate-200">
+                `;
+
+                items.forEach((item, idx) => {
+                    let ansDisplay = item.correctAnswer || 'N/A';
+                    if (item.choices && item.choices.length > 0 && item.correctAnswer) {
+                        const letters = ['A', 'B', 'C', 'D', 'E'];
+                        const ansIdx = item.choices.indexOf(item.correctAnswer);
+                        if (ansIdx !== -1) {
+                            ansDisplay = `${letters[ansIdx]} (${item.correctAnswer})`;
+                        }
+                    }
+                    html += `<div><strong>${idx + 1}:</strong> ${escapeHtml(ansDisplay)}</div>`;
+                });
+
+                html += `</div></div>`;
+            }
+
+            paper.innerHTML = html;
+        }
+
+        function exportToWord() {
+            const content = document.getElementById('printablePaper').innerHTML;
+            const htmlDocument = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <title>Exam Export</title>
+                    <style>
+                        body { font-family: 'Calibri', 'Arial', sans-serif; font-size: 11pt; line-height: 1.3; }
+                        h1, h2 { text-align: center; margin: 2px; }
+                        .grid { display: block; margin-top: 5px; }
+                        .break-inside-avoid { margin-bottom: 12px; }
+                    </style>
+                </head>
+                <body>
+                    ${content}
+                </body>
+                </html>
+            `;
+
+            if (typeof htmlDocx !== 'undefined') {
+                const converted = htmlDocx.asBlob(htmlDocument);
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(converted);
+                link.download = `Exam_${activeVersionKey.replace(' ', '_')}.docx`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showToast('Exported to Microsoft Word (.docx)!', 'success');
+            } else {
+                showToast('DOCX Exporter library loading. Please try again in a moment.', 'error');
+            }
+        }
+
+        function initClassroomMode() {
+            const items = generatedVersions[activeVersionKey] || questionsData;
+            if (items.length === 0) {
+                showToast('No items to present. Add questions first!', 'error');
+                return;
+            }
+
+            document.getElementById('presentationVersionTag').innerText = activeVersionKey;
+            document.getElementById('presentationTitle').innerText = document.getElementById('inputExamTitle').value || 'Classroom Presentation';
+            currentSlideIndex = 0;
+            renderSlide();
+        }
+
+        function changeClassroomFontSize(delta) {
+            classroomFontSize = Math.max(14, Math.min(52, classroomFontSize + delta));
+            updateClassroomFontSizeUI();
+        }
+
+        function setClassroomFontSize(size) {
+            classroomFontSize = size;
+            updateClassroomFontSizeUI();
+        }
+
+        function updateClassroomFontSizeUI() {
+            document.getElementById('fontSizeDisplay').innerText = `${classroomFontSize}px`;
+            
+            const qText = document.getElementById('presentationQuestionText');
+            if (qText) {
+                qText.style.fontSize = `${classroomFontSize}px`;
+            }
+
+            const choiceFontSize = Math.max(12, Math.round(classroomFontSize * 0.8));
+            const choiceBadgeSize = Math.max(20, Math.round(classroomFontSize * 0.95));
+            const choiceBadgeText = Math.max(10, Math.round(classroomFontSize * 0.55));
+
+            document.querySelectorAll('.classroom-choice-item').forEach(el => {
+                el.style.fontSize = `${choiceFontSize}px`;
+            });
+
+            document.querySelectorAll('.classroom-choice-badge').forEach(badge => {
+                badge.style.width = `${choiceBadgeSize}px`;
+                badge.style.height = `${choiceBadgeSize}px`;
+                badge.style.fontSize = `${choiceBadgeText}px`;
+            });
+        }
+
+        function renderSlide() {
+            const items = generatedVersions[activeVersionKey] || questionsData;
+            if (items.length === 0) return;
+
+            const item = items[currentSlideIndex];
+            document.getElementById('presentationItemIndex').innerText = `Question ${currentSlideIndex + 1} of ${items.length}`;
+            document.getElementById('presentationItemType').innerText = item.type;
+            
+            const qText = document.getElementById('presentationQuestionText');
+            qText.innerText = item.question;
+            qText.style.fontSize = `${classroomFontSize}px`;
+
+            const choicesContainer = document.getElementById('presentationChoicesList');
+            choicesContainer.innerHTML = '';
+
+            const choiceFontSize = Math.max(12, Math.round(classroomFontSize * 0.8));
+            const choiceBadgeSize = Math.max(20, Math.round(classroomFontSize * 0.95));
+            const choiceBadgeText = Math.max(10, Math.round(classroomFontSize * 0.55));
+
+            if (item.choices && item.choices.length > 0) {
+                const letters = ['A', 'B', 'C', 'D', 'E'];
+                item.choices.forEach((c, idx) => {
+                    choicesContainer.innerHTML += `
+                        <div class="classroom-choice-item bg-slate-800/80 border border-slate-700/80 p-4 rounded-xl flex items-start space-x-3 text-slate-200 transition-all duration-150 shadow" style="font-size: ${choiceFontSize}px;">
+                            <span class="classroom-choice-badge rounded-full bg-indigo-600 text-white font-black flex items-center justify-center shrink-0 shadow" style="width: ${choiceBadgeSize}px; height: ${choiceBadgeSize}px; font-size: ${choiceBadgeText}px;">${letters[idx] || idx + 1}</span>
+                            <span>${escapeHtml(c)}</span>
+                        </div>
+                    `;
+                });
+            } else {
+                choicesContainer.innerHTML = `
+                    <div class="col-span-2 text-slate-400 italic bg-slate-800/40 p-4 rounded-xl border border-slate-700 text-center classroom-choice-item" style="font-size: ${choiceFontSize}px;">
+                        Identification Item - Write answer on response sheet.
+                    </div>
+                `;
+            }
+
+            updateClassroomFontSizeUI();
+        }
+
+        function nextSlide() {
+            const items = generatedVersions[activeVersionKey] || questionsData;
+            if (currentSlideIndex < items.length - 1) {
+                currentSlideIndex++;
+                renderSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlideIndex > 0) {
+                currentSlideIndex--;
+                renderSlide();
+            }
+        }
+
+        function initPeerCheckingMode() {
+            const versionSelect = document.getElementById('peerCheckingVersionSelect');
+            const keys = Object.keys(generatedVersions);
+            
+            versionSelect.innerHTML = keys.map(k => `
+                <option value="${k}" ${k === activeVersionKey ? 'selected' : ''}>Key for ${k}</option>
+            `).join('');
+
+            peerCheckingSlideIndex = 0;
+            peerAnswerVisible = false; // Hide answer initially when starting mode
+            renderPeerCheckingSlide();
+            renderPeerCheckingGrid();
+        }
+
+        function switchPeerCheckingVersion(vKey) {
+            activeVersionKey = vKey;
+            document.getElementById('globalActiveVersion').innerText = vKey;
+            peerCheckingSlideIndex = 0;
+            peerAnswerVisible = false; // Reset reveal state on version change
+            renderPeerCheckingSlide();
+            renderPeerCheckingGrid();
+            showToast(`Switched Answer Checking Key to ${vKey}`, 'info');
+        }
+
+        function setPeerCheckingViewMode(mode) {
+            peerCheckingViewMode = mode;
+            const btnSlide = document.getElementById('btnPeerModeSlide');
+            const btnGrid = document.getElementById('btnPeerModeGrid');
+            const slideContainer = document.getElementById('peerSlideContainer');
+            const gridContainer = document.getElementById('peerGridContainer');
+
+            if (mode === 'slide') {
+                btnSlide.className = "px-4 py-2 text-xs font-black rounded-xl bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30 transition transform active:scale-95";
+                btnGrid.className = "px-4 py-2 text-xs font-bold rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-200 border-2 border-amber-700/60 transition";
+                slideContainer.classList.remove('hidden');
+                gridContainer.classList.add('hidden');
+            } else {
+                btnGrid.className = "px-4 py-2 text-xs font-black rounded-xl bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30 transition transform active:scale-95";
+                btnSlide.className = "px-4 py-2 text-xs font-bold rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-200 border-2 border-amber-700/60 transition";
+                gridContainer.classList.remove('hidden');
+                slideContainer.classList.add('hidden');
+                renderPeerCheckingGrid();
+            }
+        }
+
+        function changePeerFontSize(delta) {
+            peerFontSize = Math.max(14, Math.min(52, peerFontSize + delta));
+            updatePeerFontSizeUI();
+        }
+
+        function setPeerFontSize(size) {
+            peerFontSize = size;
+            updatePeerFontSizeUI();
+        }
+
+        function updatePeerFontSizeUI() {
+            document.getElementById('peerFontSizeDisplay').innerText = `${peerFontSize}px`;
+            
+            const qText = document.getElementById('peerQuestionText');
+            if (qText) {
+                qText.style.fontSize = `${peerFontSize}px`;
+            }
+
+            const choiceFontSize = Math.max(12, Math.round(peerFontSize * 0.8));
+            const choiceBadgeSize = Math.max(20, Math.round(peerFontSize * 0.95));
+            const choiceBadgeText = Math.max(10, Math.round(peerFontSize * 0.55));
+
+            document.querySelectorAll('.peer-choice-item').forEach(el => {
+                el.style.fontSize = `${choiceFontSize}px`;
+            });
+
+            document.querySelectorAll('.peer-choice-badge').forEach(badge => {
+                badge.style.width = `${choiceBadgeSize}px`;
+                badge.style.height = `${choiceBadgeSize}px`;
+                badge.style.fontSize = `${choiceBadgeText}px`;
+            });
+        }
+
+        function renderPeerCheckingSlide() {
+            const items = generatedVersions[activeVersionKey] || questionsData;
+            if (items.length === 0) return;
+
+            const item = items[peerCheckingSlideIndex];
+            document.getElementById('peerItemIndex').innerText = `Checking Item ${peerCheckingSlideIndex + 1} of ${items.length}`;
+            document.getElementById('peerItemType').innerText = item.type;
+
+            const qText = document.getElementById('peerQuestionText');
+            qText.innerText = item.question;
+            qText.style.fontSize = `${peerFontSize}px`;
+
+            const choicesContainer = document.getElementById('peerChoicesList');
+            choicesContainer.innerHTML = '';
+
+            const choiceFontSize = Math.max(12, Math.round(peerFontSize * 0.8));
+            const choiceBadgeSize = Math.max(20, Math.round(peerFontSize * 0.95));
+            const choiceBadgeText = Math.max(10, Math.round(peerFontSize * 0.55));
+            const letters = ['A', 'B', 'C', 'D', 'E'];
+
+            let correctChoiceLetter = '';
+
+            if (item.choices && item.choices.length > 0) {
+                item.choices.forEach((c, idx) => {
+                    const letter = letters[idx] || `${idx + 1}`;
+                    const isCorrect = (c === item.correctAnswer);
+                    if (isCorrect) correctChoiceLetter = letter;
+
+                    // Only highlight answer if peerAnswerVisible is TRUE
+                    const showHighlight = peerAnswerVisible && isCorrect;
+
+                    choicesContainer.innerHTML += `
+                        <div class="peer-choice-item ${showHighlight ? 'bg-emerald-950/90 border-2 border-emerald-400 text-emerald-100 font-bold shadow-lg' : 'bg-amber-950/40 border border-amber-800/80 text-amber-200'} p-4 rounded-xl flex items-start space-x-3 transition-all duration-300" style="font-size: ${choiceFontSize}px;">
+                            <span class="peer-choice-badge rounded-full ${showHighlight ? 'bg-emerald-500 text-slate-950 font-black ring-2 ring-emerald-300' : 'bg-amber-900 text-amber-200 border border-amber-700'} font-black flex items-center justify-center shrink-0" style="width: ${choiceBadgeSize}px; height: ${choiceBadgeSize}px; font-size: ${choiceBadgeText}px;">${letter}</span>
+                            <div class="flex-1">
+                                <span>${escapeHtml(c)}</span>
+                                ${showHighlight ? `<span class="ml-2 text-xs text-emerald-300 uppercase tracking-wider font-black">(CORRECT ANSWER)</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                choicesContainer.innerHTML = `
+                    <div class="col-span-2 text-amber-300 font-semibold bg-amber-950/50 p-4 rounded-xl border border-amber-700 text-center peer-choice-item" style="font-size: ${choiceFontSize}px;">
+                        ${peerAnswerVisible ? `Identification Answer: <strong class="text-emerald-300 underline font-bold">${escapeHtml(item.correctAnswer || 'N/A')}</strong>` : '<span class="text-amber-200/70 italic">Identification Item - Guess answer then click Reveal Answer</span>'}
+                    </div>
+                `;
+            }
+
+            // Update Reveal Box & Hidden Box
+            const hiddenBox = document.getElementById('peerAnswerHiddenBox');
+            const revealBox = document.getElementById('peerAnswerRevealBox');
+            const ansText = document.getElementById('peerCorrectAnswerText');
+            
+            if (item.choices && item.choices.length > 0) {
+                ansText.innerText = correctChoiceLetter ? `Option ${correctChoiceLetter}: ${item.correctAnswer}` : (item.correctAnswer || 'N/A');
+            } else {
+                ansText.innerText = item.correctAnswer || 'N/A';
+            }
+
+            if (peerAnswerVisible) {
+                hiddenBox.classList.add('hidden');
+                revealBox.classList.remove('hidden');
+            } else {
+                hiddenBox.classList.remove('hidden');
+                revealBox.add('hidden');
+            }
+
+            updatePeerFontSizeUI();
+            lucide.createIcons();
+        }
+
+        function revealPeerAnswer() {
+            peerAnswerVisible = true;
+            renderPeerCheckingSlide();
+        }
+
+        function hidePeerAnswer() {
+            peerAnswerVisible = false;
+            renderPeerCheckingSlide();
+        }
+
+        function nextPeerSlide() {
+            const items = generatedVersions[activeVersionKey] || questionsData;
+            if (peerCheckingSlideIndex < items.length - 1) {
+                peerCheckingSlideIndex++;
+                peerAnswerVisible = false; // Reset reveal state for next item so students guess again
+                renderPeerCheckingSlide();
+            }
+        }
+
+        function prevPeerSlide() {
+            if (peerCheckingSlideIndex > 0) {
+                peerCheckingSlideIndex--;
+                peerAnswerVisible = false; // Reset reveal state for previous item
+                renderPeerCheckingSlide();
+            }
+        }
+
+        function renderPeerCheckingGrid() {
+            const gridContainer = document.getElementById('peerAnswerGridContent');
+            const items = generatedVersions[activeVersionKey] || questionsData;
+            const letters = ['A', 'B', 'C', 'D', 'E'];
+
+            if (items.length === 0) {
+                gridContainer.innerHTML = `<p class="text-amber-300 text-sm">No items available.</p>`;
+                return;
+            }
+
+            gridContainer.innerHTML = items.map((item, idx) => {
+                let ansLetter = '';
+                if (item.choices && item.choices.length > 0 && item.correctAnswer) {
+                    const cIdx = item.choices.indexOf(item.correctAnswer);
+                    if (cIdx !== -1) ansLetter = letters[cIdx];
+                }
+
+                return `
+                    <div class="bg-amber-950/80 border border-amber-800 p-4 rounded-xl flex items-center justify-between shadow">
+                        <div>
+                            <span class="text-amber-400 text-xs font-black block">ITEM #${idx + 1}</span>
+                            <span class="text-amber-100 text-xs line-clamp-1">${escapeHtml(item.question)}</span>
+                        </div>
+                        <div class="bg-emerald-500 text-slate-950 font-black px-3 py-1.5 rounded-lg text-sm text-center shrink-0 ml-2 shadow-md">
+                            ${ansLetter ? `(${ansLetter}) ` : ''}${escapeHtml(item.correctAnswer || 'N/A')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Global Timer & Helpers
+        function startTimer() {
+            if (timerInterval) return;
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                const hrs = String(Math.floor(timerSeconds / 3600)).padStart(2, '0');
+                const mins = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, '0');
+                const secs = String(timerSeconds % 60).padStart(2, '0');
+                document.getElementById('timerDisplay').innerText = `${hrs}:${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timerSeconds = 0;
+            document.getElementById('timerDisplay').innerText = '00:00:00';
+        }
+
+        function updateGlobalStats() {
+            document.getElementById('globalItemCount').innerText = questionsData.length;
+            renderHeaderPreview();
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            const bgClass = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-slate-800';
+            
+            toast.className = `${bgClass} text-white px-4 py-3 rounded-lg shadow-lg text-xs font-bold flex items-center space-x-2 transition-all duration-300 transform translate-y-2 opacity-0`;
+            toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
+            
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+<footer style="text-align: center;
+  padding: 3px;
+  background-color: DarkSalmon;
+  color: white;">Powered by: Desk Bhuddy | IT solutions made it for you | &copy; copyright 2026</footer>
+</body>
+</html>
